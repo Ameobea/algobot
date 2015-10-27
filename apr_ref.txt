@@ -1,0 +1,13 @@
+==Backtesting==
+<ip>:3000/backtest/fast/<pair>/<start time>/<speed>
+	description: Reads in historical data from CSV into the websocket at the rate specified by the speed parameter.  
+	pair: Currency pair to backtest (EURUSD, GBPUSD, etc.)
+	start time: Unix timestamp at which to start the simulation (1399092584.5)
+	speed: delay in ms between transmission of ticks (100)
+	example: http://52.91.212.83:3000/backtest/fast/USDRUB/1399092584.5/100
+
+<ip>:3000/backtest/live/<pair>/<start time>
+	description: Reads in historical data from CSV into the websocket at simulated real-time speed based on the time between the recorded ticks.
+	pair: Currency pair to backtest (EURUSD, GBPUSD, etc.)
+	start time: Unix timestamp at which to start the simulation (1399092584.5)
+	example: http://52.91.212.83:3000/backtest/live/USDRUB/1399092584.5
