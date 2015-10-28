@@ -28,6 +28,9 @@ socket.on("error", function(err){
 	console.log("Error in simulation injection socket: ");
 	console.log(err);
 });
+socket.on("text", function(text){ //TODO: Set handlers for different data types being sent back.
+	console.log(text);
+});
 
 // development error handler
 // will print stacktrace

@@ -38,7 +38,7 @@ util.fastBacktest = function(pair, startTime, diff){
 					break;
 				}
 			}
-			util.fastSend(chunk, chunkResult, curIndex, 0, diff, socket);
+			util.fastSend(chunk, chunkResult, curIndex, diff, startTime, socket); //chunk, chunkResult, curIndex, diff, oldTime, socket
 		});
 	});
 }

@@ -34,7 +34,7 @@ var socket_server = ws.createServer(function(conn){
 		socket_server.connections.forEach(function(connection){
 			connection.sendText(input);
 		});
-	})
+	});
 	conn.on("close",function(code,reason){
 		//console.log("Websocket connection closed");
 	});
