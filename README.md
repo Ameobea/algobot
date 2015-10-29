@@ -27,6 +27,7 @@ For now, the plan is that all data share one websocket and be broadcast to all m
 
 #tick_data
 The data from the tick_data folder can be directly downloaded from the following link:
+https://drive.google.com/open?id=0Bw3Lu3S0XCdOWU9oN2tEYjJ2TFE
 
 The final, fully processed state of the tick data is in the form of many split files in csv format each containing a set amount (50,000) rows of data.  The csvs have the following format: 
 timestamp, ask, bid, askvol, bidvol
