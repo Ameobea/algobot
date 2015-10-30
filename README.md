@@ -13,9 +13,6 @@ Data is shared between the modules through websockets that link all of the modul
 
 For now, the plan is that all data share one websocket and be broadcast to all modules, but this may be changed in the future to improve performance.  Using that method, data could either be requested by one module and fufilled by another or broadcast out as soon as it is avaliable (See section above)
 
-#TODO
--Change all hardcoded ips/passwords/usernames/configuration to be read out of config files.  
-
 # Bootup Procedure
 //Script this in the future.  
 
