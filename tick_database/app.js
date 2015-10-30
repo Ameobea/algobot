@@ -6,8 +6,15 @@ var cookieParser = require('cookie-parser');
 var ws = require("nodejs-websocket");
 var fs = require('fs');
 var http = require('http');
+var redis = require('redis');
 
 var index = require('./routes/index');
+var conf = require('./helpers/conf');
+var db = require('./helpers/db_utils');
+var client = redis.createClient({host:conf.redis_host, port:conf.redis_port, auth_pass:conf.redis_password});
+client.on('error', function (err) {
+  console.log('Error ' + err);
+});
 
 var app = express();
 
@@ -15,7 +22,7 @@ var app = express();
 app.engine('html', require('ejs').renderFile);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
-app.listen(3003)
+app.listen(3003);
 console.log("Tick database started!");
 
 app.use(logger('dev'));
@@ -23,15 +30,16 @@ app.use(cookieParser());
 
 app.use('/', index);
 
+//connect to websocket and process incoming ticks
 var socket = ws.connect("ws://localhost:7507/");
 socket.on("error", function(err){
-	console.log("Error in simulation injection socket: ");
+	console.log("Error in tick database websocket: ");
 	console.log(err);
 });
 socket.on("text", function(text){ //TODO: Set handlers for different data types being sent back.
 	var parsed = JSON.parse(text);
 	if(parsed.type == "new_tick"){
-
+		db.saveTick(parsed.data.timestamp, parsed.data.ask, parsed.data.bid);
 	}
 });
 

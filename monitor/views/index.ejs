@@ -5,16 +5,24 @@
 	<script type="text/javascript" src="http://code.highcharts.com/highcharts.js"></script>
 	<script>
 		var chart; // global
+		var starttime = 0;
+		var shift = false;
 		
 		var socket = new WebSocket("ws://52.91.212.83:7507");
 		socket.onmessage = function(text){ //TODO: Set handlers for different data types being sent back.
 			var parsed = JSON.parse(text.data);
-			console.log(text);
-			var series = chart.series[0];
-			//TODO: Shift only if period greater than 10 minutes
-			//shift = series.data.length > 20; // shift if the series is longer than 20
-
-			chart.series[0].addPoint([parsed.data.timestamp*1000, parsed.data.ask]);
+			if(starttime == 0){
+				starttime = parsed.data.timestamp*1000;
+			}
+			//console.log(chart.series[0].data[0]);
+			if(parsed.data.timestamp*1000 - starttime > 600000){
+				//console.log("We shifting.");
+				shift = true;
+				starttime = chart.series[0].data[1].x;
+			}else{
+				shift = false;
+			}
+			chart.series[0].addPoint([parsed.data.timestamp*1000, parsed.data.ask], true, shift);
 		};
 
 		$(document).ready(function() {
