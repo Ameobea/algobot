@@ -1,14 +1,20 @@
-var ws = require("nodejs-websocket");
+//var ws = require("nodejs-websocket");
 var fs = require('fs');
+var redis = require('redis');
+var conf = require('../../conf/conf');
+var client = redis.createClient({host:conf.redis_host, port:conf.redis_port, auth_pass:conf.redis_password});
+client.on('error', function (err) {
+  console.log('Error ' + err);
+});
 
 var util = exports;
 
 util.fastBacktest = function(pair, startTime, diff){
-	var socket = ws.connect("ws://localhost:7507/");
+	/*var socket = ws.connect("ws://localhost:7507/");
 	socket.on("error", function(err){
 		console.log("Error in simulation injection socket: ");
 		console.log(err);
-	})
+	})*/
 
 	var index = fs.readFile("/home/ubuntu/bot/tick_data/" + pair + "/index.csv", {encoding: 'utf8'}, "r", function(err,data){
 		var result = [];
@@ -38,17 +44,17 @@ util.fastBacktest = function(pair, startTime, diff){
 					break;
 				}
 			}
-			util.fastSend(chunk, chunkResult, curIndex, diff, startTime, socket); //chunk, chunkResult, curIndex, diff, oldTime, socket
+			util.fastSend(chunk, chunkResult, curIndex, diff, startTime); //chunk, chunkResult, curIndex, diff, oldTime, socket
 		});
 	});
 }
 
 util.liveBacktest = function(pair, startTime, server){
-	var socket = ws.connect("ws://localhost:7507/");
+	/*var socket = ws.connect("ws://localhost:7507/");
 	socket.on("error", function(err){
 		console.log("Error in simulation injection socket: ");
 		console.log(err);
-	})
+	})*/
 
 	var index = fs.readFile("/home/ubuntu/bot/tick_data/" + pair + "/index.csv", {encoding: 'utf8'}, "r", function(err,data){
 		var result = [];
@@ -78,12 +84,12 @@ util.liveBacktest = function(pair, startTime, server){
 					break;
 				}
 			}
-			util.liveSend(chunk, chunkResult, curIndex, 0, parseFloat(chunkResult[curIndex][0]), socket);
+			util.liveSend(chunk, chunkResult, curIndex, 0, parseFloat(chunkResult[curIndex][0]));
 		});
 	});
 }
 
-util.liveSend = function(chunk, chunkResult, curIndex, diff, oldTime, socket){ //TODO: Make it so that a simulation can be cancelled while it's going on.
+util.liveSend = function(chunk, chunkResult, curIndex, diff, oldTime){ //TODO: Make it so that a simulation can be cancelled while it's going on.
 	if(curIndex > chunkResult.length){
 		curIndex = 1
 		chunk++;
@@ -101,15 +107,17 @@ util.liveSend = function(chunk, chunkResult, curIndex, diff, oldTime, socket){ /
 		diff = (parseFloat(chunkResult[curIndex+1][0]) - parseFloat(chunkResult[curIndex][0]))*1000;
 		//console.log(parseFloat(chunkResult[curIndex+1][0]), parseFloat(chunkResult[curIndex][0]));
 	}
-	socket.sendText('{"type":"new_tick","data":{"timestamp":' + chunkResult[curIndex][0] + ',"ask":' + chunkResult[curIndex][1] + ',"bid":' + chunkResult[curIndex][2] + "}}", function(){
+	/*socket.sendText('{"type":"new_tick","data":{"timestamp":' + chunkResult[curIndex][0] + ',"ask":' + chunkResult[curIndex][1] + ',"bid":' + chunkResult[curIndex][2] + "}}", function(){
 		//console.log("Data sent through websocket: " + chunkResult[curIndex][0] + "," + chunkResult[curIndex][1] + "," + chunkResult[curIndex][2]);
-	});
+	});*/
+	client.publish("live_ticks",'{"type":"new_tick","data":{"timestamp":' + chunkResult[curIndex][0] + ',"ask":' + chunkResult[curIndex][1] + ',"bid":' + chunkResult[curIndex][2] + "}}")
+	//console.log("tick data sent: " + '{"type":"new_tick","data":{"timestamp":' + chunkResult[curIndex][0] + ',"ask":' + chunkResult[curIndex][1] + ',"bid":' + chunkResult[curIndex][2] + "}}");
 	curIndex++;
 	oldTime = chunkResult[curIndex][0];
-	setTimeout(function(){util.liveSend(chunk, chunkResult, curIndex, diff, oldTime, socket)}, diff);
+	setTimeout(function(){util.liveSend(chunk, chunkResult, curIndex, diff, oldTime)}, diff);
 }
 
-util.fastSend = function(chunk, chunkResult, curIndex, diff, oldTime, socket){ //TODO: Make it so that a simulation can be cancelled while it's going on.
+util.fastSend = function(chunk, chunkResult, curIndex, diff, oldTime){ //TODO: Make it so that a simulation can be cancelled while it's going on.
 	if(curIndex > chunkResult.length){
 		curIndex = 1
 		chunk++;
@@ -127,10 +135,11 @@ util.fastSend = function(chunk, chunkResult, curIndex, diff, oldTime, socket){ /
 		//diff = (parseFloat(chunkResult[curIndex+1][0]) - parseFloat(chunkResult[curIndex][0]))*1000;
 		//console.log(parseFloat(chunkResult[curIndex+1][0]), parseFloat(chunkResult[curIndex][0]));
 	}
-	socket.sendText('{"type":"new_tick","data":{"timestamp":' + chunkResult[curIndex][0] + ',"ask":' + chunkResult[curIndex][1] + ',"bid":' + chunkResult[curIndex][2] + "}}", function(){
+	/*socket.sendText('{"type":"new_tick","data":{"timestamp":' + chunkResult[curIndex][0] + ',"ask":' + chunkResult[curIndex][1] + ',"bid":' + chunkResult[curIndex][2] + "}}", function(){
 		//console.log("Data sent through websocket: " + chunkResult[curIndex][0] + "," + chunkResult[curIndex][1] + "," + chunkResult[curIndex][2]);
-	});
+	});*/
+	client.publish("live_ticks",'{"type":"new_tick","data":{"timestamp":' + chunkResult[curIndex][0] + ',"ask":' + chunkResult[curIndex][1] + ',"bid":' + chunkResult[curIndex][2] + "}}")
 	curIndex++;
 	oldTime = chunkResult[curIndex][0];
-	setTimeout(function(){util.fastSend(chunk, chunkResult, curIndex, diff, oldTime, socket)}, diff);
+	setTimeout(function(){util.fastSend(chunk, chunkResult, curIndex, diff, oldTime)}, diff);
 }

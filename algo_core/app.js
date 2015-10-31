@@ -3,11 +3,12 @@ var path = require('path');
 var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
-var ws = require("nodejs-websocket");
+//var ws = require("nodejs-websocket");
 var fs = require('fs');
 var http = require('http');
 
 var index = require('./routes/index');
+var conf = require('../conf/conf');
 
 var app = express();
 
@@ -23,14 +24,14 @@ app.use(cookieParser());
 
 app.use('/', index);
 
-var socket = ws.connect("ws://localhost:7507/");
+/*var socket = ws.connect("ws://localhost:7507/");
 socket.on("error", function(err){
 	console.log("Error in simulation injection socket: ");
 	console.log(err);
 });
 socket.on("text", function(text){ //TODO: Set handlers for different data types being sent back.
-	console.log(text);
-});
+	//console.log(text);
+});*/
 
 // development error handler
 // will print stacktrace
