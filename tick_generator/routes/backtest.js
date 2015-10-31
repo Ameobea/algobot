@@ -12,4 +12,9 @@ router.get("/live/:pair/:start", function(req, res, next){
 	res.send(util.liveBacktest(req.params.pair, req.params.start));
 });
 
+router.get("/stop/:pair", function(req, res, next){
+	util.stopBacktest(req.params.pair);
+	res.send("Backtest successfully stopped for symbol " + req.params.pair);
+});
+
 module.exports = router;

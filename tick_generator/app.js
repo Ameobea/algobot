@@ -9,9 +9,12 @@ var http = require('http');
 
 var index = require('./routes/index');
 var backtest = require("./routes/backtest");
+var util = require("./helpers/util");
 //var conf = require('../conf/conf');
 
 var app = express();
+
+util.stopBacktest("all");
 
 // view engine setup
 app.engine('html', require('ejs').renderFile);
