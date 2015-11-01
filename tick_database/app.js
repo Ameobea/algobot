@@ -3,9 +3,9 @@ var path = require('path');
 var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
-//var ws = require("nodejs-websocket");
 var fs = require('fs');
 var http = require('http');
+var conf = require('../conf/conf');
 var redis = require('redis');
 var client = redis.createClient({host:conf.redis_host, port:conf.redis_port, auth_pass:conf.redis_password});
 client.on('error', function (err) {
@@ -13,7 +13,6 @@ client.on('error', function (err) {
 });
 
 var index = require('./routes/index');
-var conf = require('../conf/conf');
 var db = require('./helpers/db_utils');
 
 var app = express();
@@ -30,23 +29,11 @@ app.use(cookieParser());
 
 app.use('/', index);
 
-//connect to websocket and process incoming ticks
-/*var socket = ws.connect("ws://localhost:7507/");
-socket.on("error", function(err){
-	console.log("Error in tick database websocket: ");
-	console.log(err);
-});
-socket.on("text", function(text){ //TODO: Set handlers for different data types being sent back.
-	var parsed = JSON.parse(text);
-	if(parsed.type == "new_tick"){
-		db.saveTick(parsed.data.timestamp, parsed.data.ask, parsed.data.bid);
-	}
-});*/
 client.subscribe("live_ticks");
 client.on("message", function(channel,message){
 	var parsed = JSON.parse(text);
 	if(parsed.type == "new_tick"){
-		db.saveTick(parsed.data.timestamp, parsed.data.ask, parsed.data.bid);
+		db.processTick(parsed.data.symbol, parsed.data.timestamp, parsed.data.ask, parsed.data.bid);
 	}
 });
 
