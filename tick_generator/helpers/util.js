@@ -113,9 +113,9 @@ util.liveSend = function(chunk, chunkResult, curIndex, diff, oldTime, pair){
 			}else{
 				diff = (parseFloat(chunkResult[curIndex+1][0]) - parseFloat(chunkResult[curIndex][0]))*1000;
 			}
-			client.publish("live_ticks",'{"type":"new_tick","data":{"timestamp":' + chunkResult[curIndex][0] + ',"ask":' + chunkResult[curIndex][1] + ',"bid":' + chunkResult[curIndex][2] + "}}")
-			client.zadd("tick_asks_"+pair.toLowerCase(),chunkResult[curIndex][1],chunkResult[curIndex][0]);
-			client.zadd("tick_bids_"+pair.toLowerCase(),chunkResult[curIndex][2],chunkResult[curIndex][0]);
+			client.publish("live_ticks",'{"type":"new_tick","data":{"symbol":' + pair + ',"timestamp":' + chunkResult[curIndex][0] + ',"ask":' + chunkResult[curIndex][1] + ',"bid":' + chunkResult[curIndex][2] + "}}")
+			client.zadd("tick_asks_"+pair.toLowerCase(),chunkResult[curIndex][0],chunkResult[curIndex][1]);
+			client.zadd("tick_bids_"+pair.toLowerCase(),chunkResult[curIndex][0],chunkResult[curIndex][2]);
 			curIndex++;
 			oldTime = chunkResult[curIndex][0];
 			setTimeout(function(){util.liveSend(chunk, chunkResult, curIndex, diff, oldTime, pair)}, diff);
@@ -142,9 +142,9 @@ util.fastSend = function(chunk, chunkResult, curIndex, diff, oldTime, pair){
 					}
 				});
 			}
-			client.publish("live_ticks",'{"type":"new_tick","data":{"timestamp":' + chunkResult[curIndex][0] + ',"ask":' + chunkResult[curIndex][1] + ',"bid":' + chunkResult[curIndex][2] + "}}")
-			client.zadd("tick_asks_".pair.toLowerCase(),chunkResult[curIndex][1],chunkResult[curIndex][0]);
-			client.zadd("tick_bids_".pair.toLowerCase(),chunkResult[curIndex][2],chunkResult[curIndex][0]);
+			client.publish("live_ticks",'{"type":"new_tick","data":{"symbol":' + pair + ',"timestamp":' + chunkResult[curIndex][0] + ',"ask":' + chunkResult[curIndex][1] + ',"bid":' + chunkResult[curIndex][2] + "}}")
+			client.zadd("tick_asks_".pair.toLowerCase(),chunkResult[curIndex][0],chunkResult[curIndex][1]);
+			client.zadd("tick_bids_".pair.toLowerCase(),chunkResult[curIndex][0],chunkResult[curIndex][2]);
 			curIndex++;
 			oldTime = chunkResult[curIndex][0];
 			setTimeout(function(){util.fastSend(chunk, chunkResult, curIndex, diff, oldTime, pair)}, diff);
