@@ -11,12 +11,12 @@ var util = exports;
 
 util.fastBacktest = function(pair, startTime, diff){
 	client.sismember("backtests",pair.toLowerCase(),function(err,res){
-		if(res == 1){
+		if(res){
 			return "Simulation not started; a simulation for that ticker is already running.  Stop the previous simulation before starting another.";
 		}else{
 			client.sadd("backtests",pair.toLowerCase());
 			fs.readFile("/home/ubuntu/bot/tick_data/" + pair + "/index.csv", {encoding: 'utf8'}, "r", function(err,data){
-				var result = [];
+				result = [];
 				var indexData = data.split("\n");
 				for(var i=1;i<indexData.length;i++){
 					if(indexData[i].length > 3){
@@ -30,7 +30,7 @@ util.fastBacktest = function(pair, startTime, diff){
 					}
 				}
 				var chunkFile = fs.readFile("/home/ubuntu/bot/tick_data/" + pair + "/" + pair + "_" + chunk + ".csv", {encoding: "utf8"}, "r", function(err, data){
-					var chunkResult = [];
+					chunkResult = [];
 					var chunkData = data.split("\n");
 					for(var i=1;i<chunkData.length;i++){
 						if(chunkData[i].length > 3){
@@ -54,7 +54,7 @@ util.fastBacktest = function(pair, startTime, diff){
 
 util.liveBacktest = function(pair, startTime, server){
 	client.sismember("backtests",pair.toLowerCase(),function(err,res){
-		if(res == 1){
+		if(res){
 			return "Simulation not started; a simulation for that ticker is already running.  Stop the previous simulation before starting another.";
 		}else{
 			client.sadd("backtests", pair.toLowerCase(),function(res){
@@ -94,15 +94,13 @@ util.liveBacktest = function(pair, startTime, server){
 	});
 }
 
-util.liveSend = function(chunk, chunkResult, curIndex, diff, oldTime, pair){ //TODO: Make it so that a simulation can be cancelled while it's going on.
-	console.log(chunkResult.length);
-	util.checkRunning(pair).then(function(res, chunkResult){
+util.liveSend = function(chunk, chunkResult, curIndex, diff, oldTime, pair){
+	util.checkRunning(pair).then(function(res){
 		if(res){
-			console.log(chunkResult);
 			if(curIndex > chunkResult.length){
 				curIndex = 1
 				chunk++;
-				var chunkResult = [];
+				chunkResult = [];
 				var chunkData = data.split("\n");
 				var chunkFile = fs.readFile("/home/ubuntu/bot/tick_data/" + pair + "/" + pair + "_" + chunk + ".csv", {encoding: "utf8"}, "r", function(err, data){
 					for(var i=1;i<chunkData.length;i++){
@@ -116,8 +114,8 @@ util.liveSend = function(chunk, chunkResult, curIndex, diff, oldTime, pair){ //T
 				diff = (parseFloat(chunkResult[curIndex+1][0]) - parseFloat(chunkResult[curIndex][0]))*1000;
 			}
 			client.publish("live_ticks",'{"type":"new_tick","data":{"timestamp":' + chunkResult[curIndex][0] + ',"ask":' + chunkResult[curIndex][1] + ',"bid":' + chunkResult[curIndex][2] + "}}")
-			client.zadd("tick_asks",chunkResult[curIndex][1],chunkResult[curIndex][0]);
-			client.zadd("tick_bids",chunkResult[curIndex][2],chunkResult[curIndex][0]);
+			client.zadd("tick_asks_"+pair.toLowerCase(),chunkResult[curIndex][1],chunkResult[curIndex][0]);
+			client.zadd("tick_bids_"+pair.toLowerCase(),chunkResult[curIndex][2],chunkResult[curIndex][0]);
 			curIndex++;
 			oldTime = chunkResult[curIndex][0];
 			setTimeout(function(){util.liveSend(chunk, chunkResult, curIndex, diff, oldTime, pair)}, diff);
@@ -128,13 +126,13 @@ util.liveSend = function(chunk, chunkResult, curIndex, diff, oldTime, pair){ //T
 	})
 }
 
-util.fastSend = function(chunk, chunkResult, curIndex, diff, oldTime, pair){ //TODO: Make it so that a simulation can be cancelled while it's going on.
-	client.sismember("backtests",pair.toLowerCase(),function(err,res){
-		if(res == 1){
+util.fastSend = function(chunk, chunkResult, curIndex, diff, oldTime, pair){
+	util.checkRunning(pair).then(function(res){
+		if(res){
 			if(curIndex > chunkResult.length){
 				curIndex = 1
 				chunk++;
-				var chunkResult = [];
+				chunkResult = [];
 				var chunkData = data.split("\n");
 				var chunkFile = fs.readFile("/home/ubuntu/bot/tick_data/" + pair + "/" + pair + "_" + chunk + ".csv", {encoding: "utf8"}, "r", function(err, data){
 					for(var i=1;i<chunkData.length;i++){
@@ -145,13 +143,16 @@ util.fastSend = function(chunk, chunkResult, curIndex, diff, oldTime, pair){ //T
 				});
 			}
 			client.publish("live_ticks",'{"type":"new_tick","data":{"timestamp":' + chunkResult[curIndex][0] + ',"ask":' + chunkResult[curIndex][1] + ',"bid":' + chunkResult[curIndex][2] + "}}")
-			client.zadd("tick_asks",chunkResult[curIndex][1],chunkResult[curIndex][0]);
-			client.zadd("tick_bids",chunkResult[curIndex][2],chunkResult[curIndex][0]);
+			client.zadd("tick_asks_".pair.toLowerCase(),chunkResult[curIndex][1],chunkResult[curIndex][0]);
+			client.zadd("tick_bids_".pair.toLowerCase(),chunkResult[curIndex][2],chunkResult[curIndex][0]);
 			curIndex++;
 			oldTime = chunkResult[curIndex][0];
 			setTimeout(function(){util.fastSend(chunk, chunkResult, curIndex, diff, oldTime, pair)}, diff);
+		}else{
+			console.log("Backtest cancelled.");
+			return;
 		}
-	});
+	})
 }
 
 util.checkRunning = function(pair){
