@@ -31,7 +31,7 @@ app.use('/', index);
 
 client.subscribe("live_ticks");
 client.on("message", function(channel,message){
-	var parsed = JSON.parse(text);
+	var parsed = JSON.parse(message);
 	if(parsed.type == "new_tick"){
 		db.processTick(parsed.data.symbol, parsed.data.timestamp, parsed.data.ask, parsed.data.bid);
 	}
