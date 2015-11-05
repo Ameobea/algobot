@@ -29,8 +29,7 @@ util.fastBacktest = function(pair, startTime, diff){
 						break;
 					}
 				}
-				var chunkFile = fs.readFile("/home/ubuntu/bot/tick_data/" + pair + "/" + pair + "_" + chunk + ".csv", {encoding: "utf8"}, "r", function(err, data){
-					chunkResult = [];
+				var chunkFile =  util.readTickDataFile(pair, chunk, function(err, data){
 					var chunkData = data.split("\n");
 					for(var i=1;i<chunkData.length;i++){
 						if(chunkData[i].length > 3){
@@ -72,7 +71,7 @@ util.liveBacktest = function(pair, startTime, server){
 							break;
 						}
 					}
-					var chunkFile = fs.readFile("/home/ubuntu/bot/tick_data/" + pair + "/" + pair + "_" + chunk + ".csv", {encoding: "utf8"}, "r", function(err, data){
+					var chunkFile =  util.readTickDataFile(pair, chunk, function(err, data){
 						var chunkResult = [];
 						var chunkData = data.split("\n");
 						for(var i=1;i<chunkData.length;i++){
@@ -102,7 +101,7 @@ util.liveSend = function(chunk, chunkResult, curIndex, diff, oldTime, pair){
 				chunk++;
 				chunkResult = [];
 				var chunkData = data.split("\n");
-				var chunkFile = fs.readFile("/home/ubuntu/bot/tick_data/" + pair + "/" + pair + "_" + chunk + ".csv", {encoding: "utf8"}, "r", function(err, data){
+				var chunkFile = , function(err, data){
 					for(var i=1;i<chunkData.length;i++){
 						if(chunkData[i].length > 3){
 							chunkResult.push(chunkData[i].split(","));
@@ -116,7 +115,6 @@ util.liveSend = function(chunk, chunkResult, curIndex, diff, oldTime, pair){
       publishToClient(pair, chunkResult);
 		}else{
 			console.log("Backtest cancelled.");
-			return;
 		}
 	})
 }
@@ -155,7 +153,7 @@ util.fastSend = function(chunk, chunkResult, curIndex, diff, oldTime, pair){
 				chunk++;
 				chunkResult = [];
 				var chunkData = data.split("\n");
-				var chunkFile = fs.readFile("/home/ubuntu/bot/tick_data/" + pair + "/" + pair + "_" + chunk + ".csv", {encoding: "utf8"}, "r", function(err, data){
+				var chunkFile = util.readTickDataFile(pair, chunk, function(err, data){
 					for(var i=1;i<chunkData.length;i++){
 						if(chunkData[i].length > 3){
 							chunkResult.push(chunkData[i].split(","));
@@ -166,7 +164,6 @@ util.fastSend = function(chunk, chunkResult, curIndex, diff, oldTime, pair){
 			publishToClient(pair, chunkResult);
 		}else{
 			console.log("Backtest cancelled.");
-			return;
 		}
 	})
 }
@@ -174,14 +171,17 @@ util.fastSend = function(chunk, chunkResult, curIndex, diff, oldTime, pair){
 util.checkRunning = function(pair){
 	return new Promise(function(fufill,reject){
 		client.sismember("backtests",pair.toLowerCase(),function(err,res){
-			if(res == 1){
-				fufill(true);
-			}else{
-				fufill(false);
-			}
+			fufill(res == 1);
 		});
 	});
 }
+
+util.readTickDataFile = function(pair, chunk, callback) {
+  return fs.readFile(
+    '/home/ubuntu/bot/tick_data/' + pair + '/' + pair + '_' + chunk + '.csv',
+    {encoding: 'utf8'}, 'r', callback
+  );
+};
 
 util.stopBacktest = function(ticker){
 	if(ticker.toLowerCase() == "all"){
