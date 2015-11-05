@@ -29,7 +29,8 @@ util.fastBacktest = function(pair, startTime, diff){
 						break;
 					}
 				}
-				var chunkFile =  util.readTickDataFile(pair, chunk, function(err, data){
+				var chunkFile = util.readTickDataFile(pair, chunk, function(err, data){
+					chunkResult = [];
 					var chunkData = data.split("\n");
 					for(var i=1;i<chunkData.length;i++){
 						if(chunkData[i].length > 3){
