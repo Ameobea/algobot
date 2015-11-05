@@ -49,7 +49,7 @@ util.fastBacktest = function(pair, startTime, diff){
 			return "Simulation started successfully for symbol " + pair;
 		}
 	});
-	
+
 }
 
 util.liveBacktest = function(pair, startTime, server){
@@ -113,18 +113,7 @@ util.liveSend = function(chunk, chunkResult, curIndex, diff, oldTime, pair){
 			}else{
 				diff = (parseFloat(chunkResult[curIndex+1][0]) - parseFloat(chunkResult[curIndex][0]))*1000;
 			}
-			client.incr("tickset_length_"+pair.toLowerCase(),function(err,index){
-				index = index-1;
-				client.zadd("tick_timestamps_"+pair.toLowerCase(),chunkResult[curIndex][0],index,function(err,res){
-					client.zadd("tick_asks_"+pair.toLowerCase(),chunkResult[curIndex][1],index,function(err,res){
-						client.zadd("tick_bids_"+pair.toLowerCase(),chunkResult[curIndex][2],index,function(err,res){
-							client.publish("live_ticks",'{"type":"new_tick","data":{"symbol":"' + pair + '","timestamp":' + chunkResult[curIndex][0] + ',"ask":' + chunkResult[curIndex][1] + ',"bid":' + chunkResult[curIndex][2] + "}}");
-							curIndex++;
-							setTimeout(function(){util.liveSend(chunk, chunkResult, curIndex, diff, chunkResult[curIndex][0], pair)}, diff);
-						});
-					});
-				});
-			});
+      publishToClient(pair, chunkResult);
 		}else{
 			console.log("Backtest cancelled.");
 			return;
@@ -132,11 +121,37 @@ util.liveSend = function(chunk, chunkResult, curIndex, diff, oldTime, pair){
 	})
 }
 
+util.publishToClient = function(pair, chunkResult) {
+  pair = pair.toLowerCase();
+  client.incr('tickset_length_'+pair,function(err,index){
+    index--;
+    client.zadd('tick_timestamps_'+pair,chunkResult[curIndex][0],index,function(){
+      client.zadd('tick_asks_'+pair,chunkResult[curIndex][1],index,function(){
+        client.zadd('tick_bids_'+pair,chunkResult[curIndex][2],index,function(){
+          client.publish('live_ticks', JSON.stringify({
+            type: 'new_tick',
+            data: {
+              symbol:    pair,
+              timestamp: chunkResult[curIndex][0],
+              ask:       chunkResult[curIndex][1],
+              bid:       chunkResult[curIndex][2]
+            }
+          })
+          );
+          setTimeout(function(){
+            util.liveSend(chunk, chunkResult, curIndex + 1, diff, chunkResult[curIndex][0], pair);
+          }, diff);
+        });
+      });
+    });
+  });
+};
+
 util.fastSend = function(chunk, chunkResult, curIndex, diff, oldTime, pair){
 	util.checkRunning(pair).then(function(res){
 		if(res){
 			if(curIndex > chunkResult.length){
-				curIndex = 1
+				curIndex = 1;
 				chunk++;
 				chunkResult = [];
 				var chunkData = data.split("\n");
@@ -148,18 +163,7 @@ util.fastSend = function(chunk, chunkResult, curIndex, diff, oldTime, pair){
 					}
 				});
 			}
-			client.incr("tickset_length_"+pair.toLowerCase(),function(err,index){
-				index = index-1;
-				client.zadd("tick_timestamps_"+pair.toLowerCase(),chunkResult[curIndex][0],index,function(err,res){
-					client.zadd("tick_asks_"+pair.toLowerCase(),chunkResult[curIndex][1],index,function(err,res){
-						client.zadd("tick_bids_"+pair.toLowerCase(),chunkResult[curIndex][2],index,function(err,res){
-							client.publish("live_ticks",'{"type":"new_tick","data":{"symbol":"' + pair + '","timestamp":' + chunkResult[curIndex][0] + ',"ask":' + chunkResult[curIndex][1] + ',"bid":' + chunkResult[curIndex][2] + "}}");
-							curIndex++;
-							setTimeout(function(){util.liveSend(chunk, chunkResult, curIndex, diff, chunkResult[curIndex][0], pair)}, diff);
-						});
-					});
-				});
-			});
+			publishToClient(pair, chunkResult);
 		}else{
 			console.log("Backtest cancelled.");
 			return;
