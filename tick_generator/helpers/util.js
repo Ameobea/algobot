@@ -10,12 +10,12 @@ client.on('error', function (err) {
 var util = exports;
 
 util.fastBacktest = function(pair, startTime, diff){
-  client.sismember("backtests",pair.toLowerCase(),function(err,res){
+  client.sismember("backtests",pair,function(err,res){
     if(res){
       return "Simulation not started; a simulation for that ticker is already running.  Stop the previous simulation before starting another.";
     }else{
-      client.sadd("backtests",pair.toLowerCase());
-      fs.readFile("/home/ubuntu/bot/tick_data/" + pair + "/index.csv", {encoding: 'utf8'}, "r", function(err,data){
+      client.sadd("backtests",pair);
+      fs.readFile("/home/ubuntu/bot/tick_data/" + pair.toUpperCase() + "/index.csv", {encoding: 'utf8'}, "r", function(err,data){
         result = [];
         var indexData = data.split("\n");
         for(var i=1;i<indexData.length;i++){
@@ -53,12 +53,12 @@ util.fastBacktest = function(pair, startTime, diff){
 }
 
 util.liveBacktest = function(pair, startTime, server){
-  client.sismember("backtests",pair.toLowerCase(),function(err,res){
+  client.sismember("backtests",pair,function(err,res){
     if(res){
       return "Simulation not started; a simulation for that ticker is already running.  Stop the previous simulation before starting another.";
     }else{
-      client.sadd("backtests", pair.toLowerCase(),function(res){
-        fs.readFile("/home/ubuntu/bot/tick_data/" + pair + "/index.csv", {encoding: 'utf8'}, "r", function(err,data){
+      client.sadd("backtests", pair,function(res){
+        fs.readFile("/home/ubuntu/bot/tick_data/" + pair.toUpperCase() + "/index.csv", {encoding: 'utf8'}, "r", function(err,data){
           var result = [];
           var indexData = data.split("\n");
           for(var i=1;i<indexData.length;i++){
@@ -97,12 +97,13 @@ util.liveBacktest = function(pair, startTime, server){
 util.liveSend = function(chunk, chunkResult, curIndex, diff, oldTime, pair){
   util.checkRunning(pair).then(function(res){
     if(res){
+      console.log(curIndex, chunkResult.length);
       if(curIndex > chunkResult.length){
         curIndex = 1
         chunk++;
         chunkResult = [];
         var chunkData = data.split("\n");
-        var chunkFile = , function(err, data){
+        var chunkFile = util.readTickDataFile(pair, chunk, function(err, data){
           for(var i=1;i<chunkData.length;i++){
             if(chunkData[i].length > 3){
               chunkResult.push(chunkData[i].split(","));
@@ -113,15 +114,15 @@ util.liveSend = function(chunk, chunkResult, curIndex, diff, oldTime, pair){
       }else{
         diff = (parseFloat(chunkResult[curIndex+1][0]) - parseFloat(chunkResult[curIndex][0]))*1000;
       }
-      publishToClient(pair, chunkResult);
+      util.publishToClient(pair, chunk, chunkResult, curIndex, diff, util.liveSend);
     }else{
       console.log("Backtest cancelled.");
     }
   })
 }
 
-util.publishToClient = function(pair, chunkResult) {
-  pair = pair.toLowerCase();
+util.publishToClient = function(pair, chunk, chunkResult, curIndex, diff, callback) {
+  pair = pair;
   client.incr('tickset_length_'+pair,function(err,index){
     index--;
     client.zadd('tick_timestamps_'+pair,chunkResult[curIndex][0],index,function(){
@@ -137,7 +138,7 @@ util.publishToClient = function(pair, chunkResult) {
             }
           }));
           setTimeout(function(){
-            util.liveSend(chunk, chunkResult, curIndex + 1, diff, chunkResult[curIndex][0], pair);
+            callback(chunk, chunkResult, curIndex + 1, diff, chunkResult[curIndex][0], pair);
           }, diff);
         });
       });
@@ -161,7 +162,7 @@ util.fastSend = function(chunk, chunkResult, curIndex, diff, oldTime, pair){
           }
         });
       }
-      publishToClient(pair, chunkResult);
+      util.publishToClient(pair, chunk, chunkResult, curIndex, diff, util.fastSend);
     }else{
       console.log("Backtest cancelled.");
     }
@@ -170,7 +171,7 @@ util.fastSend = function(chunk, chunkResult, curIndex, diff, oldTime, pair){
 
 util.checkRunning = function(pair){
   return new Promise(function(fufill,reject){
-    client.sismember("backtests",pair.toLowerCase(),function(err,res){
+    client.sismember("backtests",pair,function(err,res){
       fufill(res == 1);
     });
   });
@@ -178,7 +179,7 @@ util.checkRunning = function(pair){
 
 util.readTickDataFile = function(pair, chunk, callback) {
   return fs.readFile(
-    '/home/ubuntu/bot/tick_data/' + pair + '/' + pair + '_' + chunk + '.csv',
+    '/home/ubuntu/bot/tick_data/' + pair.toUpperCase() + '/' + pair.toUpperCase() + '_' + chunk + '.csv',
     {encoding: 'utf8'}, 'r', callback
   );
 };

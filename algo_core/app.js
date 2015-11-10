@@ -3,14 +3,25 @@ var path = require('path');
 var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
-//var ws = require("nodejs-websocket");
 var fs = require('fs');
 var http = require('http');
+var conf = require('../conf/conf');
+var redis = require('redis');
+var client = redis.createClient({host:conf.redis_host, port:conf.redis_port, auth_pass:conf.redis_password});
+client.on('error', function (err) {
+  console.log('Error ' + err);
+});
 
+var util = require("./helpers/util");
 var index = require('./routes/index');
 var conf = require('../conf/conf');
 
 var app = express();
+
+client.subscribe("tick_mas");
+client.on("message", function(channel, message){
+	util.processSmaData(message);
+});
 
 // view engine setup
 app.engine('html', require('ejs').renderFile);
@@ -23,15 +34,6 @@ app.use(logger('dev'));
 app.use(cookieParser());
 
 app.use('/', index);
-
-/*var socket = ws.connect("ws://localhost:7507/");
-socket.on("error", function(err){
-	console.log("Error in simulation injection socket: ");
-	console.log(err);
-});
-socket.on("text", function(text){ //TODO: Set handlers for different data types being sent back.
-	//console.log(text);
-});*/
 
 // development error handler
 // will print stacktrace
