@@ -3,3 +3,4 @@ tick_data/*
 tick_database/helpers/conf.js
 conf/*
 **/node_modules/
+**/npm-debug.log
