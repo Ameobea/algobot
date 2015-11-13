@@ -65,7 +65,7 @@ db.avgStep = function(i, total, rangeArray, symbol, timestamp, range, timestamps
         db.avgStep(i+1,total,rangeArray,symbol,timestamp,range,timestamps, prices);
       }
     }else{
-      client.incr("sma_length_"+symbol+"_"+range, function(err,index){
+      client.zcard("sma_timestamps_"+symbol+"_"+range, function(err,index){
       	index--;
         client.zadd("sma_timestamps_"+symbol+"_"+range, timestamp, index, function(){
           client.zadd("sma_data_"+symbol+"_"+range, total/range, index, function(){

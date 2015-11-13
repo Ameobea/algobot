@@ -10,10 +10,7 @@ As live ticks are recieved by the bot, they are stored in the sorted sets.  Each
 They are currently stored in the format "tick_asks_symbol" and "tick_bids_symbol."  An example is tick_asks_audusd.  All pairs stored in the database are converted to lower case.  
 
 ##backtests (set)
-If a ticker is a member of this set, that means that a backtest is currently running for that ticker.  Before every time a tick from a backtest is sent, the backtester checks if it is still active in this set.  If it is not, the backtest is cancelled.  Also, a new backtest is not started if one is currently running for the same ticker.  
-
-##tickset_length_symbol
-Each of these variables is the length of the current tick sets for the given symbol.  They should be incremented each time new data is added to their sets, and reset when their sets are cleared or deleted.  
+If a ticker is a member of this set, that means that a backtest is currently running for that ticker.  Before every time a tick from a backtest is sent, the backtester checks if it is still active in this set.  If it is not, the backtest is cancelled.  Also, a new backtest is not started if one is currently running for the same ticker.   
 
 ##SMA Data
 These objects contain data involving the recorded simple moving averages of incoming ticks.  They store all calculated averages until emptied.  There are two sorted sets that contain the data: sma_timestamps_* which contains the timestamps that correspond to the averages, and sma_data_* which contain the actual sma data.  The indexes of the sets with the same names correspond.  There are also length counters for each of the set pairs that shows the lengths of those sets.
@@ -21,8 +18,8 @@ These objects contain data involving the recorded simple moving averages of inco
 ###sma_timestamps_[symbol]_[period] (sorted set)
 These sets contain data about the timestamps of recorded SMA history for different symbols on different time frames.  They contain a sorted set of all the timestamps which contain data for the corresponding sma_data object.  
 
-##sma_data_[symbol]_[period] (sorted set)
-These sets contain the actual SMA values for the timestamps of the corresponding indexes in the corresponding timestamp array.  So index 15 of sma_data_* has the timestamp found in index 15 of sma_timestamps_*.
+###sma_data_[symbol]_[period] (sorted set)
+These sets contain the actual SMA values for the timestamps of the corresponding indexes in the corresponding timestamp array.  So index 15 of sma_data_* has the timestamp found in index 15 of sma_timestamps_*.  
 
-##sma_length_[symbol]_[period] (sorted set)
-These variables hold the length of the sets that correspond.  They should be incremented each time new data is added to the arrays and reset when the arrays are reset.  
+##SMA Derivative Data
+###sma_deriv_[symbol]_[period] (sorted set)

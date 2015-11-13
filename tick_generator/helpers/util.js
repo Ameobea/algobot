@@ -123,7 +123,7 @@ util.liveSend = function(chunk, chunkResult, curIndex, diff, oldTime, pair){
 
 util.publishToClient = function(pair, chunk, chunkResult, curIndex, diff, callback) {
   pair = pair;
-  client.incr('tickset_length_'+pair,function(err,index){
+  client.zcard('tickset_timestamps_'+pair,function(err,index){
     index--;
     client.zadd('tick_timestamps_'+pair,chunkResult[curIndex][0],index,function(){
       client.zadd('tick_asks_'+pair,chunkResult[curIndex][1],index,function(){

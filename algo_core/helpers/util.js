@@ -6,3 +6,7 @@ var util = exports;
 util.processSmaData = function(message){
 	
 }
+
+util.calcSmaDeriv = function(ticker, timestamp, ){
+	
+}
