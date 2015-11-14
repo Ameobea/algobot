@@ -13,13 +13,27 @@ They are currently stored in the format "tick_asks_symbol" and "tick_bids_symbol
 If a ticker is a member of this set, that means that a backtest is currently running for that ticker.  Before every time a tick from a backtest is sent, the backtester checks if it is still active in this set.  If it is not, the backtest is cancelled.  Also, a new backtest is not started if one is currently running for the same ticker.   
 
 ##SMA Data
-These objects contain data involving the recorded simple moving averages of incoming ticks.  They store all calculated averages until emptied.  There are two sorted sets that contain the data: sma_timestamps_* which contains the timestamps that correspond to the averages, and sma_data_* which contain the actual sma data.  The indexes of the sets with the same names correspond.  There are also length counters for each of the set pairs that shows the lengths of those sets.
+These objects contain data involving the recorded simple moving averages of incoming ticks.  They store all calculated averages until emptied.  There are two sorted sets that contain the data: sma_timestamps_* which contains the timestamps that correspond to the averages, and sma_data_* which contain the actual sma data.  The indexes of the sets with the same names correspond.
 
-###sma_timestamps_[symbol]_[period] (sorted set)
-These sets contain data about the timestamps of recorded SMA history for different symbols on different time frames.  They contain a sorted set of all the timestamps which contain data for the corresponding sma_data object.  
+###sma_timestamps_[symbol] (sorted set)
+- score = timestamp, member = index
+
+This set contains data about the timestamps of recorded SMA history for different symbols.  All time frames share the same timestamp index array.  It contains a sorted set of all the timestamps which contain data for the corresponding sma_data objects.  
 
 ###sma_data_[symbol]_[period] (sorted set)
+- score = price, member = index
+
 These sets contain the actual SMA values for the timestamps of the corresponding indexes in the corresponding timestamp array.  So index 15 of sma_data_* has the timestamp found in index 15 of sma_timestamps_*.  
 
 ##SMA Derivative Data
-###sma_deriv_[symbol]_[period] (sorted set)
+These contain the slopes between different lines of the ticks.  They can be used to determine the directions of trends over different time periods.  
+
+It is important to make sure that the correct average lines for each period are used.  
+
+###sma_deriv_data_[symbol]_[period] (sorted set)
+- score = sma deriv, member = index
+
+These sets contain the slope of the line between the provided timestamp and points in the past for that function.  
+
+###sma_deriv_timestamp_[symbol] (sorted set)
+- score = timestamp, member = index

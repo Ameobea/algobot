@@ -65,12 +65,14 @@ db.avgStep = function(i, total, rangeArray, symbol, timestamp, range, timestamps
         db.avgStep(i+1,total,rangeArray,symbol,timestamp,range,timestamps, prices);
       }
     }else{
-      client.zcard("sma_timestamps_"+symbol+"_"+range, function(err,index){
+      client.zcard("sma_timestamps_"+symbol, function(err,index){
       	index--;
-        client.zadd("sma_timestamps_"+symbol+"_"+range, timestamp, index, function(){
-          client.zadd("sma_data_"+symbol+"_"+range, total/range, index, function(){
-            client.publish("tick_mas",JSON.stringify({"type":"sma","data":{"symbol":symbol,"timestamp":timestamp,"period":range,"value":(total/range)}}));
-          })
+        client.zadd("sma_timestamps_"+symbol, timestamp, index, function(){
+          if(!isNaN(total/range)){
+            client.zadd("sma_data_"+symbol+"_"+range, total/range, index, function(){
+              client.publish("tick_mas",JSON.stringify({"type":"sma","data":{"symbol":symbol,"timestamp":timestamp,"period":range,"value":(total/range)}}));
+            });
+          }
         });
       });
     }

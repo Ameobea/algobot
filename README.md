@@ -4,19 +4,19 @@ Algorithmic trading platform
 The bot consists of several interconnected modules that work together to analyze and respond to live price data and execute trades.  It is designed to be completely asynchronous and modular so that it can be runover multiple cores and servers.  
 
 ##Module Architecture
-Live tick data source/simulated live tick data source -> tick_generator -> websocket
+Live tick data source/simulated live tick data source -> tick_generator -> redis pubsub
 
-From the websocket, the data is processed by the tick_database which both stores incoming ticks as well as performing calculations offloaded by other modules.  Depending on the needs of the other modules, it will either act as an interface to the actual redis database through with the other modules can request data or transmit it over the websocket as soon as it's calculated.  I'm leaning towards the second, as this allows it to output the data faster.  
+From the redis pubsub system, the data is processed by the tick_database which both stores incoming ticks as well as performing calculations offloaded by other modules.  Depending on the needs of the other modules, it will either act as an interface to the actual redis database through with the other modules can request data or transmit it over the redis pubsub as soon as it's calculated.  I'm leaning towards the second, as this allows it to output the data faster.  
 
 ##Data flow
-Data is shared between the modules through websockets that link all of the modules together.  The socket server is hosted by the tick_generator module (possibly changed later) which has the job of providing raw, live tick data to the other modules.  
+Data is shared between the modules through redis pubsubs that link all of the modules together.  The socket server is hosted by the tick_generator module (possibly changed later) which has the job of providing raw, live tick data to the other modules.  
 
-For now, the plan is that all data share one websocket and be broadcast to all modules, but this may be changed in the future to improve performance.  Using that method, data could either be requested by one module and fufilled by another or broadcast out as soon as it is avaliable (See section above)
+For now, the plan is that all data share one redis pubsub and be broadcast to all modules, but this may be changed in the future to improve performance.  Using that method, data could either be requested by one module and fufilled by another or broadcast out as soon as it is avaliable (See section above)
 
 # Bootup Procedure
 //Script this in the future.  
 
-1. node app.js in tick_generator //This NEEDS to be started first, as it hosts the websocket server(s) to which all the other modules connect.  Possibly change this in the future.  
+1. node app.js in tick_generator //This NEEDS to be started first, as it hosts the redis pubsub server(s) to which all the other modules connect.  Possibly change this in the future.  
 2. node app.js in tick_database //Must be started before other modules as other modules need it.
 3. node app.js in algo_core
 4. node app.js in trade_exec
@@ -65,7 +65,7 @@ This module has two functions.  First, it records live ticks as they come in and
 
 These calculations are saved to a redis database (preferrably hosted on the same machine) which stores actively used data until it is sent off.  The types of calculations it holds are determined by the needs of the subalgos.  
 
-For live events that we've been waiting for like resistance breaks and average crosses (which can be configured by other subalgos), broadcast an event as soon as it happens.  For other things, such as moving averages over periods and dynamic data, listen for queries on the websocket before sending.  
+For live events that we've been waiting for like resistance breaks and average crosses (which can be configured by other subalgos), broadcast an event as soon as it happens.  For other things, such as moving averages over periods and dynamic data, listen for queries on the redis pubsub before sending.  
 
 #monitor
 The monitor module is used as a GUI and administrative dashboard to all of the bot's functionality.  It will have monitoring of live market conditions as well as control functions for doing everything necessary with controlling the bot.  
