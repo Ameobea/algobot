@@ -1,6 +1,14 @@
 #Database Architecture
 The main database for the bot is a redis database.  Its primary purpose is to store tick data and analysis data calculated from the ticks.  
 
+Much data is held in the form of indexed sets.  By this method, many pieces of related data can be stored together among multiple sets.  For example, for each timestamp there is an ask and a bid price.  Thus, three sorted sets are used to represent the data:
+
+- the timestamp set, which has members equal to the indexes (increasing numerically as the length of the set increases) and scores equal to the timestamp of each index.  
+- the ask set, which has members equal to the indexes and scores equal to the ask price at the timestamp that share the same index
+- the bid set, which has members equal to the indexes and scores equal to the bid price at the timestamp that share the same index
+
+This same structure can be used for many different kinds of data that would normally be stored in columns.  Basically, each column in a traditional SQL table or similar would be represented in a unique sorted set that contains both the index and that data from that column.  
+
 #Keys
 ##tick_asks, tick_bids, and tick_timestamps (sorted sets)
 - score = price, member = index
@@ -14,6 +22,8 @@ If a ticker is a member of this set, that means that a backtest is currently run
 
 ##SMA Data
 These objects contain data involving the recorded simple moving averages of incoming ticks.  They store all calculated averages until emptied.  There are two sorted sets that contain the data: sma_timestamps_* which contains the timestamps that correspond to the averages, and sma_data_* which contain the actual sma data.  The indexes of the sets with the same names correspond.
+
+For now, SMA deriv data is stored * 100,000,000 to avoid it getting stored as 2*11000000000e-7 or similar.
 
 ###sma_timestamps_[symbol] (sorted set)
 - score = timestamp, member = index

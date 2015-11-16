@@ -1,52 +1,41 @@
-var ws = require("nodejs-websocket");
-//var Promise = require('promise');
-var redis = require('redis');
-var conf = require('../../conf/conf');
-var client = redis.createClient({host:conf.redis_host, port:conf.redis_port, auth_pass:conf.redis_password});
-client.on('error', function (err) {
-  console.log('Error ' + err);
-});
 var util = exports;
+var db = require('./db_util')
 
 util.processSmaData = function(message){
   processed = JSON.parse(message);
-  //console.log(processed);
-  util.calcDerivs(processed.data.symbol, processed.data.timestamp);
+  util.calcDerivs(processed.data.symbol, processed.data.timestamp, processed.data.period);
 }
 
-util.calcDerivs = function(ticker, timestamp){
+util.calcDerivs = function(ticker, timestamp, range){
   var processed = [];
-  client.zcard("sma_deriv_timestamps_"+ticker, function(err,derivIndex){
-    client.zadd("sma_deriv_timestamps_"+ticker, timestamp, derivIndex, function(){
-      client.zrangebyscore("tick_timestamps_"+ticker, timestamp, timestamp, "WITHSCORES", function(err,curIndex){ // gets the index of the timestamp being compared
-        client.zscore("tick_asks_"+ticker, curIndex[0], function(err,curPrice){ // gets the price of the asset at the timestamp being calculated
-          for(var i=1;i<6;i++){
-            for(var o=1;o<6;o++){
-              if(processed.indexOf(o*i) == -1){
-                //console.log(o*i);
-                processed.push(o*i);
-                util.calcSmaDeriv(ticker, timestamp, o*i*10, Math.round(curPrice*100)/100, derivIndex);
-              }
+  db.appendIndexedItem('sma_deriv_timestamps_'+ticker, timestamp, function(derivIndex){
+    db.getIndexByElement('sma_timestamps_'+ticker, timestamp, function(index){
+      db.getElementByIndex('sma_data_'+ticker+'_'+range, index, function(curPrice){
+        for(var i=1;i<6;i++){ // Eventually replace this with a dynamically generated list of derivatives to generate instead of a static list.
+          for(var o=1;o<6;o++){
+            if(processed.indexOf(o*i) == -1){
+              processed.push(o*i);
+              util.calcSmaDeriv(ticker, range, timestamp, o*i*10, Math.round(curPrice*100000000)/100000000, derivIndex); // queue the derivative calculation.
             }
           }
-        });
+        }
       });
     });
   });
 }
 
-util.calcSmaDeriv = function(ticker, timestamp, period, curPrice, derivIndex){
-  client.zrangebyscore("tick_timestamps_"+ticker, (timestamp-period)-1, (timestamp-period)+1, "WITHSCORES", function(err,indexes){ // return all indexes within 1 second of the desired time
-    var minDiff = Math.abs((timestamp-period)-indexes[1]);
-    var minIndex = indexes[0];
-    for(var i=1;i<indexes.length;i=i+2){
-      if(Math.abs((timestamp-period)-indexes[i]) < minDiff){
-        minDiff = Math.abs((timestamp-period)-indexes[i]);
-        minIndex = indexes[i-1];
+util.calcSmaDeriv = function(ticker, range, timestamp, period, curPrice, derivIndex){// return all indexes within 1 second of the desired time
+  db.getElementsInRange(1,'sma_timestamps_'+ticker,timestamp,function(timestamps){ // returns all timestamps within given range of the given timestamp.
+    var minDiff = Math.abs((timestamp-period)-timestamps[1]);
+    var minIndex = timestamps[0];
+    for(var i=1;i<timestamps.length;i=i+2){ // find the index of the timestamp with the smallest time difference from the given timestamp.  
+      if(Math.abs((timestamp-period)-timestamps[i]) < minDiff){
+        minDiff = Math.abs((timestamp-period)-timestamps[i]);
+        minIndex = timestamps[i-1];
       }
-      if(i+1 == indexes.length){
-        client.zscore("tick_asks_"+ticker, minIndex, function(err, oldPrice){ // gets the price of the old tick closest to the specified price
-          client.zadd("sma_deriv_data_"+ticker+"_"+period, (curPrice-oldPrice)/((timestamp-period)-timestamp), derivIndex, function(){});
+      if(i+1 == timestamps.length){
+        db.getElementByIndex('sma_data_'+ticker+'_'+range, minIndex, function(oldPrice){ // gets the price of the old tick closest to the specified timestamp
+          db.addElement('sma_deriv_data_'+ticker+'_'+period, ((curPrice-oldPrice)/((timestamp-period)-timestamp))*100000000000, derivIndex);
         });
       }
     }
