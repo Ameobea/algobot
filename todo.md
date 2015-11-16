@@ -13,3 +13,4 @@
 - Merge some small modules together?
 - Remove the express requirements from some modules that have no need or web interfaces.   
 - Convert the ghetto sorting happening on line ~31 of algo_core/helpers/util.js to alex's pretty way.
+- Update all client instances to use the main one.

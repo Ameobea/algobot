@@ -23,7 +23,7 @@ If a ticker is a member of this set, that means that a backtest is currently run
 ##SMA Data
 These objects contain data involving the recorded simple moving averages of incoming ticks.  They store all calculated averages until emptied.  There are two sorted sets that contain the data: sma_timestamps_* which contains the timestamps that correspond to the averages, and sma_data_* which contain the actual sma data.  The indexes of the sets with the same names correspond.
 
-For now, SMA deriv data is stored * 100,000,000 to avoid it getting stored as 2*11000000000e-7 or similar.
+For now, SMA deriv data is stored * 100,000,000,000 to avoid it getting stored as 2*11000000000e-7 or similar.
 
 ###sma_timestamps_[symbol] (sorted set)
 - score = timestamp, member = index
