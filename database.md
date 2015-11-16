@@ -30,7 +30,7 @@ These contain the slopes between different lines of the ticks.  They can be used
 
 It is important to make sure that the correct average lines for each period are used.  
 
-###sma_deriv_data_[symbol]_[period] (sorted set)
+###sma_deriv_data_[symbol]_[ma_period]_[lookback_period] (sorted set)
 - score = sma deriv, member = index
 
 These sets contain the slope of the line between the provided timestamp and points in the past for that function.  

@@ -37,28 +37,18 @@ util.calcDerivs = function(ticker, timestamp){
 
 util.calcSmaDeriv = function(ticker, timestamp, period, curPrice, derivIndex){
   client.zrangebyscore("tick_timestamps_"+ticker, (timestamp-period)-1, (timestamp-period)+1, "WITHSCORES", function(err,indexes){ // return all indexes within 1 second of the desired time
-    //console.log(indexes);
     var minDiff = Math.abs((timestamp-period)-indexes[1]);
     var minIndex = indexes[0];
     for(var i=1;i<indexes.length;i=i+2){
-      //console.log(period);
-      //console.log(minDiff);
-      //console.log(indexes[i], timestamp);
       if(Math.abs((timestamp-period)-indexes[i]) < minDiff){
         minDiff = Math.abs((timestamp-period)-indexes[i]);
         minIndex = indexes[i-1];
-        //console.log(minIndex);
       }
       if(i+1 == indexes.length){
-        //console.log(minIndex);
-        //client.zscore("tick_asks_"+ticker,)
         client.zscore("tick_asks_"+ticker, minIndex, function(err, oldPrice){ // gets the price of the old tick closest to the specified price
-          //console.log(period, curPrice, oldPrice, timestamp);
-          //console.log((curPrice-oldPrice)/((timestamp-period)-timestamp));
           client.zadd("sma_deriv_data_"+ticker+"_"+period, (curPrice-oldPrice)/((timestamp-period)-timestamp), derivIndex, function(){});
         });
       }
     }
-    //console.log(minIndex);
   });
 }

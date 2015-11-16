@@ -14,7 +14,7 @@ db.processTick = function(symbol, timestamp, ask, bid){
   db.calcSMAs(timestamp, symbol);
 }
 
-db.calcSMAs = function(timestamp, symbol){
+db.calcSMAs = function(timestamp, symbol){ // eventually optimise to grab all the ticks at once with one db access and split them to the individual calculations.
   db.calcSMA(timestamp, symbol, 5);
   db.calcSMA(timestamp, symbol, 15);
   db.calcSMA(timestamp, symbol, 200);
