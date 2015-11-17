@@ -1,5 +1,5 @@
 var util = exports;
-var db = require('./db_util')
+var db = require('./db_util');
 
 util.processSmaData = function(message){
   processed = JSON.parse(message);

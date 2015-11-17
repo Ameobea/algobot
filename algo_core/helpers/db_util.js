@@ -18,8 +18,8 @@ db.getElementsInRange = function(range, setName, element, callback){
 
 //Returns the number of elements in the set with the given name.
 db.getSetLength = function(setName, callback){
-  client.zcard(setName,function(err,res){
-    callback(res);
+  client.zcard(setName,function(err,elements){
+    callback(elements);
   })
 }
 
@@ -49,5 +49,5 @@ db.getElementByIndex = function(setName, index, callback){
 
 //Adds the specified element to the specified set with the specified index.
 db.addElement = function(setName, element, index){
-  client.zadd(setName, element, index, function(){});
+  client.zadd(setName, element, index);
 }
