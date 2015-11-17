@@ -12,10 +12,7 @@
     "ejs": "2.3.4",
     "express": "4.13.3",
     "jade": "*",
-    "nodejs-websocket": "1.4.0",
     "debug": "~2.1.1",
-    "serve-favicon": "~2.2.0",
-    "redis": "~2.2.5",
-    "promise": "7.0.4"
+    "serve-favicon": "~2.2.0"
   }
 }

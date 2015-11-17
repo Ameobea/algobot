@@ -3,23 +3,16 @@ var path = require('path');
 var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
-var fs = require('fs');
-var http = require('http');
-var conf = require('../conf/conf');
-var redis = require('redis');
-var client = redis.createClient({host:conf.redis_host, port:conf.redis_port, auth_pass:conf.redis_password});
-client.on('error', function (err) {
-  console.log('Error ' + err);
-});
+var client = require('../conf/conf').client();
 
-var util = require("./helpers/util");
+var util = require('./helpers/util');
 var index = require('./routes/index');
 var conf = require('../conf/conf');
 
 var app = express();
 
-client.subscribe("tick_mas");
-client.on("message", function(channel, message){
+client.subscribe('tick_mas');
+client.on('message', function(channel, message){
 	util.processSmaData(message);
 });
 
@@ -28,7 +21,7 @@ app.engine('html', require('ejs').renderFile);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 app.listen(3001)
-console.log("Tick reader started!");
+console.log('Tick reader started!');
 
 app.use(logger('dev'));
 app.use(cookieParser());

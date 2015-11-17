@@ -14,7 +14,7 @@ router.get('/', function(req, res, next) {
 
 router.get('/reset_db', function(req, res, next){
 	client.flushall(function(){
-		res.send("Database successfully wiped.");
+		res.send('Database successfully wiped.');
 	})
 })
 
