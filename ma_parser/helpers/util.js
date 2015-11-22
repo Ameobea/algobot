@@ -1,5 +1,5 @@
 var util = exports;
-var db = require('./db_util');
+var iSet = require('../../indexed_set/indexed_set');
 
 util.processSmaData = function(message){
   processed = JSON.parse(message);
@@ -8,9 +8,9 @@ util.processSmaData = function(message){
 
 util.calcDerivs = function(ticker, timestamp, range){
   var processed = [];
-  db.appendIndexedItem('sma_deriv_timestamps_'+ticker, timestamp, function(derivIndex){
-    db.getIndexByElement('sma_timestamps_'+ticker, timestamp, function(index){
-      db.getElementByIndex('sma_data_'+ticker+'_'+range, index, function(curPrice){
+  iSet.appendIndexedItem('sma_deriv_timestamps_'+ticker, timestamp, function(derivIndex){
+    iSet.getIndexByElement('sma_timestamps_'+ticker, timestamp, function(index){
+      iSet.getElementByIndex('sma_data_'+ticker+'_'+range, index, function(curPrice){
         for(var i=1;i<6;i++){ // Eventually replace this with a dynamically generated list of derivatives to generate instead of a static list.
           for(var o=1;o<6;o++){
             if(processed.indexOf(o*i) == -1){
@@ -25,7 +25,7 @@ util.calcDerivs = function(ticker, timestamp, range){
 }
 
 util.calcSmaDeriv = function(ticker, range, timestamp, period, curPrice, derivIndex){// return all indexes within 1 second of the desired time
-  db.getElementsInRange(1,'sma_timestamps_'+ticker,timestamp,function(timestamps){ // returns all timestamps within given range of the given timestamp.
+  iSet.getElementsInRange(1,'sma_timestamps_'+ticker,timestamp,function(timestamps){ // returns all timestamps within given range of the given timestamp.
     var minDiff = Math.abs((timestamp-period)-timestamps[1]);
     var minIndex = timestamps[0];
     for(var i=1;i<timestamps.length;i=i+2){ // find the index of the timestamp with the smallest time difference from the given timestamp.  
@@ -34,8 +34,8 @@ util.calcSmaDeriv = function(ticker, range, timestamp, period, curPrice, derivIn
         minIndex = timestamps[i-1];
       }
       if(i+1 == timestamps.length){
-        db.getElementByIndex('sma_data_'+ticker+'_'+range, minIndex, function(oldPrice){ // gets the price of the old tick closest to the specified timestamp
-          db.addElement('sma_deriv_data_'+ticker+'_'+period, ((curPrice-oldPrice)/((timestamp-period)-timestamp))*100000000000, derivIndex);
+        iSet.getElementByIndex('sma_data_'+ticker+'_'+range, minIndex, function(oldPrice){ // gets the price of the old tick closest to the specified timestamp
+          iSet.addElement('sma_deriv_data_'+ticker+'_'+period, ((curPrice-oldPrice)/((timestamp-period)-timestamp))*100000000000, derivIndex);
         });
       }
     }
