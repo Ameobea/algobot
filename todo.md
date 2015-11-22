@@ -15,3 +15,10 @@
 - Convert the ghetto sorting happening on line ~31 of algo_core/helpers/util.js to alex's pretty way.
 - Update all client instances to use the main one.
 - Install js linter when internet isn't censored
+
+- Max/min price finder that determines the highs and lows of a price over a period of time.  
+  - Will use moving averages instead of raw tick data for this.  
+- Horizontal/slant support/resistance line finder based no data from the max/min price data.
+- Analysis of SMA deriv data
+- long-term data storage system outside of redis
+  - Virtualize the database access system so that data can be queried independant of where/how it's stored

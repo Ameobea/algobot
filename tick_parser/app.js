@@ -1,6 +1,13 @@
+/*
+tick_parser module
+
+This module has the job of listening to published live tick data and performing any initial calculations
+on it that are deemed necessary.  As of now, those calculations consist of moving average calculations
+which are then stored in the database and published to other modules of the bot.  
+*/
+
 var express = require('express');
 var path = require('path');
-var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var client = require('../conf/conf').client();

@@ -1,6 +1,15 @@
+/*
+ma_parser module
+This module listens for published moving average calculations.  It then uses that data to calculate
+moving average derivative data that is used to determine the average rate of change of prices over different
+time invervals.
+
+In addition, it uses moving average data to calculate the times and prices at which moving averages cross
+each other, which can be used to determine price trends and reversals.  
+*/
+
 var express = require('express');
 var path = require('path');
-var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var client = require('../conf/conf').client();
