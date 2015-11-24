@@ -1,8 +1,0 @@
-{
-  "name": "ameobot-conf",
-  "version": "0.0.1",
-  "private": true,
-  "dependencies": {
-    "redis": "~2.2.5"
-  }
-}

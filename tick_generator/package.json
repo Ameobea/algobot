@@ -14,6 +14,7 @@
     "jade": "*",
     "debug": "~2.1.1",
     "serve-favicon": "~2.2.0",
-    "redis": "~2.2.5"
+    "redis": "~2.2.5",
+    "promise": "7.0.4"
   }
 }

@@ -12,7 +12,8 @@ var express = require('express');
 var path = require('path');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
-var client = require('../conf/conf').client();
+//I'd love to move this use of client to the db module, but I'm not sure how to do that.
+var client = require('../db/util').client();
 
 var util = require('./helpers/util');
 var index = require('./routes/index');
@@ -30,7 +31,7 @@ app.engine('html', require('ejs').renderFile);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 app.listen(3001)
-console.log('Tick reader started!');
+console.log('Moving average parser started!');
 
 app.use(logger('dev'));
 app.use(cookieParser());

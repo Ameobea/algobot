@@ -14,7 +14,8 @@ var path = require('path');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var ws = require('nodejs-websocket');
-var client = require('../conf/conf').client();
+//I'd also like to move this to the db module if possible
+var client = require('../db/util').client();
 
 var index = require('./routes/index');
 
@@ -33,48 +34,48 @@ app.use(cookieParser());
 app.use('/', index);
 
 var socket_server = ws.createServer(function(conn){
-    socket_server.on('error', function(err){
-        console.log('Websocket server had some sort of error:');
-        console.log(err);
+  socket_server.on('error', function(err){
+    console.log('Websocket server had some sort of error:');
+    console.log(err);
+  });
+  conn.on('text', function(input){ //TODO: Set handlers for different data types being sent back.
+    socket_server.connections.forEach(function(connection){
+      connection.sendText(input);
     });
-    conn.on('text', function(input){ //TODO: Set handlers for different data types being sent back.
-        socket_server.connections.forEach(function(connection){
-            connection.sendText(input);
-        });
-    });
-    conn.on('close',function(code,reason){
-        //console.log('Websocket connection closed');
-    });
+  });
+  conn.on('close',function(code,reason){
+    //console.log('Websocket connection closed');
+  });
 }).listen(7507);
 
 client.subscribe('live_ticks');
 client.on('message',function(channel, message){
-    socket_server.connections.forEach(function(connection){
-        connection.sendText(message);
-    })
+  socket_server.connections.forEach(function(connection){
+    connection.sendText(message);
+  })
 });
 
 // development error handler
 // will print stacktrace
 if (app.get('env') === 'development') {
-    app.use(function(err, req, res, next) {
-        res.status(err.status || 500);
-        console.log(err.stack);
-        res.render('error', {
-            message: err.message,
-            error: err
-        });
+  app.use(function(err, req, res, next) {
+    res.status(err.status || 500);
+    console.log(err.stack);
+    res.render('error', {
+      message: err.message,
+      error: err
     });
+  });
 }
 
 // production error handler
 // no stacktraces leaked to user
 app.use(function(err, req, res, next) {
-    res.status(err.status || 500);
-    res.render('error', {
-        message: err.message,
-        error: {}
-    });
+  res.status(err.status || 500);
+  res.render('error', {
+    message: err.message,
+    error: {}
+  });
 });
 
 app.use(function(req, res, next) {

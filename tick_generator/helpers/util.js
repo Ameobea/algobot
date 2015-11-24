@@ -1,4 +1,7 @@
-var client = require('../../conf/conf').client();
+var client = require('../../db/util').client();
+var fs = require('fs');
+var Promise = require('promise');
+var iSet = require('../../db/indexed_set');
 
 var util = exports;
 
@@ -116,24 +119,21 @@ util.liveSend = function(chunk, chunkResult, curIndex, diff, oldTime, pair){
 
 util.publishToClient = function(pair, chunk, chunkResult, curIndex, diff, callback) {
   pair = pair;
-  client.zcard('tick_timestamps_'+pair,function(err,index){
-    index--;
-    client.zadd('tick_timestamps_'+pair,chunkResult[curIndex][0],index,function(){
-      client.zadd('tick_asks_'+pair,chunkResult[curIndex][1],index,function(){
-        client.zadd('tick_bids_'+pair,chunkResult[curIndex][2],index,function(){
-          client.publish('live_ticks', JSON.stringify({
-            type: 'new_tick',
-            data: {
-              symbol:    pair,
-              timestamp: chunkResult[curIndex][0],
-              ask:       chunkResult[curIndex][1],
-              bid:       chunkResult[curIndex][2]
-            }
-          }));
-          setTimeout(function(){
-            callback(chunk, chunkResult, curIndex + 1, diff, chunkResult[curIndex][0], pair);
-          }, diff);
-        });
+  iSet.append('ticks_'+pair, 'timestamps', chunkResult[curIndex][0],function(index){
+    iSet.add('ticks_'+pair, 'asks', index, chunkResult[curIndex][1], function(){
+      iSet.add('ticks_'+pair, 'bids', index, chunkResult[curIndex][2], function(){
+        client.publish('live_ticks', JSON.stringify({
+          type: 'new_tick',
+          data: {
+            symbol:    pair,
+            timestamp: chunkResult[curIndex][0],
+            ask:       chunkResult[curIndex][1],
+            bid:       chunkResult[curIndex][2]
+          }
+        }));
+        setTimeout(function(){
+          callback(chunk, chunkResult, curIndex + 1, diff, chunkResult[curIndex][0], pair);
+        }, diff);
       });
     });
   });

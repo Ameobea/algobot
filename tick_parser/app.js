@@ -10,7 +10,7 @@ var express = require('express');
 var path = require('path');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
-var client = require('../conf/conf').client();
+var client = require('../db/util').client();
 
 var index = require('./routes/index');
 var db = require('./helpers/db_utils');
@@ -22,7 +22,7 @@ app.engine('html', require('ejs').renderFile);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 app.listen(3003);
-console.log('Tick database started!');
+console.log('Tick parser started!');
 
 app.use(logger('dev'));
 app.use(cookieParser());
