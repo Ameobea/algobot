@@ -38,7 +38,7 @@ db.avgStep = function(indexes, symbol, liveTimestamp, range, timestamps, prices,
     }
     if(i+1==timestamps.length){
       iSet.add('sma_'+symbol, 'data'+'_'+range, liveIndex, total/range, function(){
-        client.publish('tick_mas', JSON.stringify({type:'sma',data:{symbol:symbol,timestamp:liveTimestamp,period:range,value:(total/range)}}));
+        client.publish('tick_mas', JSON.stringify({type:'sma',data:{symbol:symbol, timestamp:liveTimestamp, period:range, value:(total/range)}}));
       });
     }
   }

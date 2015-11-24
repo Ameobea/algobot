@@ -1,64 +1,144 @@
 <html>
 <head>
-	<title>Ameobot Management Console</title>
-	<script type="text/javascript" src="http://code.jquery.com/jquery-1.10.1.js"></script>
-	<script type="text/javascript" src="http://code.highcharts.com/highcharts.js"></script>
-	<script>
-		var chart; // global
-		var starttime = 0;
-		var shift = false;
-		
-		var socket = new WebSocket("ws://52.91.212.83:7507");
-		socket.onmessage = function(text){ //TODO: Set handlers for different data types being sent back.
-			var parsed = JSON.parse(text.data);
-			if(starttime == 0){
-				starttime = parsed.data.timestamp*1000;
-			}
-			//console.log(chart.series[0].data[0]);
-			if(parsed.data.timestamp*1000 - starttime > 600000){
-				//console.log("We shifting.");
-				shift = true;
-				starttime = chart.series[0].data[1].x;
-			}else{
-				shift = false;
-			}
-			chart.series[0].addPoint([parsed.data.timestamp*1000, parsed.data.ask], true, shift);
-		};
+  <title>Ameobot Management Console</title>
+  <script type="text/javascript" src="http://code.jquery.com/jquery-1.10.1.js"></script>
+  <script type="text/javascript" src="http://code.highcharts.com/highcharts.js"></script>
+  <script>
+    var tick_chart; // global
+    var sma_chart;
+    var deriv_chart;
+    var starttime = 0;
+    var shift = false;
+    
+    var socket = new WebSocket("ws://52.91.212.83:7507");
+    socket.onmessage = function(text){ //TODO: Set handlers for different data types being sent back.
+      var parsed = JSON.parse(text.data);
+      console.log(parsed);
+      if(parsed.type == "new_tick" && parsed.data.symbol == "eurusd"){
+        if(starttime == 0){
+          starttime = parsed.data.timestamp*1000;
+        }
+        if(parsed.data.timestamp*1000 - starttime > 600000){
+          shift = true;
+          starttime = tick_chart.series[0].data[1].x;
+        }else{
+          shift = false;
+        }
+        console.log(parsed.data.timestamp*1000, parsed.data.ask);
+        tick_chart.series[0].addPoint([parsed.data.timestamp*1000, parseFloat(parsed.data.ask)], true, shift);
+      }
+      if(parsed.type == "sma"){
+        if(parsed.data.period == 200){
+          if(starttime == 0){
+            starttime = parsed.data.timestamp*1000;
+          }
+          if(parsed.data.timestamp*1000 - starttime > 600000){
+            shift = true;
+            starttime = tick_chart.series[0].data[1].x;
+          }else{
+            shift = false;
+          }
+          sma_chart.series[0].addPoint([parsed.data.timestamp*1000, parsed.data.value], true, shift);
+        }
+      }
+      if(parsed.type == "sma_deriv"){
+        if(parsed.data.ma_period == 200 && parsed.data.deriv_range == 40){
+          if(starttime == 0){
+            starttime = parsed.data.timestamp*1000;
+          }
+          if(parsed.data.timestamp*1000 - starttime > 600000){
+            shift = true;
+            starttime = tick_chart.series[0].data[1].x;
+          }else{
+            shift = false;
+          }
+          deriv_chart.series[0].addPoint([parsed.data.timestamp*1000, parsed.data.value], true, shift);
+        }
+      }
+    };
 
-		$(document).ready(function() {
-			chart = new Highcharts.Chart({
-				chart: {
-					renderTo: 'container'
-					//defaultSeriesType: 'spline',
-					/*events: {
-						load: requestData
-					}*/
-				},
-				title: {
-					text: 'Live random data'
-				},
-				xAxis: {
-					type: 'datetime',
-					tickPixelInterval: 150,
-					maxZoom: 20 * 1000
-				},
-				yAxis: {
-					minPadding: 0.2,
-					maxPadding: 0.2,
-					title: {
-						text: 'Value',
-						margin: 80
-					}
-				},
-				series: [{
-					name: 'Random data',
-					data: []
-				}]
-			});		
-		});
-	</script>
+    $(document).ready(function() {
+      tick_chart = new Highcharts.Chart({
+        chart: {
+          renderTo: 'live_ticks'
+        },
+        title: {
+          text: 'Live Ticks'
+        },
+        xAxis: {
+          type: 'datetime',
+          tickPixelInterval: 150,
+          maxZoom: 20 * 1000
+        },
+        yAxis: {
+          minPadding: 0.2,
+          maxPadding: 0.2,
+          title: {
+            text: 'Value',
+            margin: 80
+          }
+        },
+        series: [{
+          name: 'Ticks',
+          data: []
+        }]
+      });
+      sma_chart = new Highcharts.Chart({
+        chart: {
+          renderTo: 'tick_smas'
+        },
+        title: {
+          text: 'Live Ticks SMAs'
+        },
+        xAxis: {
+          type: 'datetime',
+          tickPixelInterval: 150,
+          maxZoom: 20 * 1000
+        },
+        yAxis: {
+          minPadding: 0.2,
+          maxPadding: 0.2,
+          title: {
+            text: 'Value',
+            margin: 80
+          }
+        },
+        series: [{
+          name: 'Tick SMAs',
+          data: []
+        }]
+      });
+      deriv_chart = new Highcharts.Chart({
+        chart: {
+          renderTo: 'sma_derivs'
+        },
+        title: {
+          text: 'Live SMA Derivs'
+        },
+        xAxis: {
+          type: 'datetime',
+          tickPixelInterval: 150,
+          maxZoom: 20 * 1000
+        },
+        yAxis: {
+          minPadding: 0.2,
+          maxPadding: 0.2,
+          title: {
+            text: 'Value',
+            margin: 80
+          }
+        },
+        series: [{
+          name: 'SMA Derivs',
+          data: []
+        }]
+      });
+    });
+  </script>
 </head>
 <body>
-	<div id="container" style="width: 800px; height: 400px; margin: 0 auto"></div>
+  <div id="live_ticks" style="width: 800px; height: 400px; margin: 0 auto"></div>
+  <div id="tick_smas" style="width: 800px; height: 400px; margin: 0 auto"></div>
+  <div id="sma_derivs" style="width: 800px; height: 400px; margin: 0 auto"></div>
 </body>
 </html>

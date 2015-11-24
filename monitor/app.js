@@ -49,6 +49,8 @@ var socket_server = ws.createServer(function(conn){
 }).listen(7507);
 
 client.subscribe('live_ticks');
+client.subscribe('tick_mas');
+client.subscribe('sma_derivs');
 client.on('message',function(channel, message){
   socket_server.connections.forEach(function(connection){
     connection.sendText(message);
