@@ -14,7 +14,9 @@
 - Remove the express requirements from some modules that have no need or web interfaces.   
 - Convert the ghetto sorting happening on line ~31 of algo_core/helpers/util.js to alex's pretty way.
 - Update all client instances to use the main one.
-- Install js linter when internet isn't censored
+- Correct accuracy of SMA calculations
+  - Most likely due to the fact that when searching by index in a sorted set, the index of the parent indexed set does not necessarily match due to missed calculations.
+- Add in jasmine testing and set up tests
 
 - Max/min price finder that determines the highs and lows of a price over a period of time.  
   - Will use moving averages instead of raw tick data for this.  

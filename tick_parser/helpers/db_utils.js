@@ -22,13 +22,12 @@ db.calcSMAs = function(liveTimestamp, symbol){ // eventually optimise to grab al
 db.calcSMA = function(liveTimestamp, symbol, range, liveIndex){
   iSet.rangeByElement('ticks_'+symbol.toLowerCase(), 'timestamps', liveTimestamp-range, liveTimestamp, function(indexes,timestamps){
     iSet.rangeByIndex('ticks_'+symbol.toLowerCase(), 'bids', indexes[0], indexes[indexes.length-1], function(prices){
-      console.log
-      db.avgStep(indexes, symbol, liveTimestamp, range, timestamps, prices, liveIndex);
+      db.doCalculation(indexes, symbol, liveTimestamp, range, timestamps, prices, liveIndex);
     });
   });
 }
 
-db.avgStep = function(indexes, symbol, liveTimestamp, range, timestamps, prices, liveIndex){
+db.doCalculation = function(indexes, symbol, liveTimestamp, range, timestamps, prices, liveIndex){
   var total = 0;
   for(var i=0;i<timestamps.length;i++){
     if(i==0){ // the first element of prices is not a part of the prices being averaged but instead the one that came before.

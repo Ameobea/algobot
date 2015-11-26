@@ -42,7 +42,7 @@
         }
       }
       if(parsed.type == "sma_deriv"){
-        if(parsed.data.ma_period == 200 && parsed.data.deriv_range == 40){
+        if(parsed.data.ma_period == 200 && parsed.data.deriv_range == 20){
           if(starttime == 0){
             starttime = parsed.data.timestamp*1000;
           }

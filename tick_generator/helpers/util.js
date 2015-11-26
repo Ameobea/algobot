@@ -93,7 +93,6 @@ util.liveBacktest = function(pair, startTime, server){
 util.liveSend = function(chunk, chunkResult, curIndex, diff, oldTime, pair){
   util.checkRunning(pair).then(function(res){
     if(res){
-      console.log(curIndex, chunkResult.length);
       if(curIndex > chunkResult.length){
         curIndex = 1
         chunk++;

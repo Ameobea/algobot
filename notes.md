@@ -105,3 +105,12 @@ When the price stops following the pattern set forth in the channel, this marks 
 This strategy attempts to take advantage of predictable price moves within a channel.  Shorting at the resistance line and buying at the support line, even contrary to the overall trend of the channel, has the possiblity of turning profit.  In order to use this strategy, it must be decided that a channel will continue.  
 
 ##Moving Averages
+
+----
+
+#General Notes
+
+##Uses of SMA Derivs
+SMA Derivs can be used very effectively to determine the sentiment of the market.  If the deriv is above significantly above zero for an extended period of time, this indicates the probability of a bull market.  The same goes for the contrary, if it is below zero for an extended period of time which indicates a bear market.   The other option is if it hovers around and regulrarly crosses zero, indicating a range market.  
+
+It is possible that the distance and times at which it crosses zero can be used to determine prime buy/sell points for trading the small moves within a range.
