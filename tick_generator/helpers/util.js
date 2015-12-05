@@ -139,6 +139,7 @@ util.publishToClient = function(pair, chunk, chunkResult, curIndex, diff, callba
 };
 
 util.fastSend = function(chunk, chunkResult, curIndex, diff, oldTime, pair){
+  console.log("sut");
   util.checkRunning(pair).then(function(res){
     if(res){
       if(curIndex > chunkResult.length){
