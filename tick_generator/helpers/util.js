@@ -45,7 +45,6 @@ util.fastBacktest = function(pair, startTime, diff){
       return 'Simulation started successfully for symbol ' + pair;
     }
   });
-
 }
 
 util.liveBacktest = function(pair, startTime, server){
@@ -139,7 +138,6 @@ util.publishToClient = function(pair, chunk, chunkResult, curIndex, diff, callba
 };
 
 util.fastSend = function(chunk, chunkResult, curIndex, diff, oldTime, pair){
-  console.log("sut");
   util.checkRunning(pair).then(function(res){
     if(res){
       if(curIndex > chunkResult.length){

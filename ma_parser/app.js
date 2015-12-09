@@ -21,6 +21,7 @@ var conf = require('../conf/conf');
 
 var app = express();
 
+//Every time a new moving average is posted, process it.  
 client.subscribe('tick_mas');
 client.on('message', function(channel, message){
 	util.processSmaData(message);

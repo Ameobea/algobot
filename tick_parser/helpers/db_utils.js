@@ -21,13 +21,18 @@ db.calcSMAs = function(liveTimestamp, symbol){ // eventually optimise to grab al
 
 db.calcSMA = function(liveTimestamp, symbol, range, liveIndex){
   iSet.rangeByElement('ticks_'+symbol.toLowerCase(), 'timestamps', liveTimestamp-range, liveTimestamp, function(indexes,timestamps){
+    if(!indexes.length || !timestamps.length){
+      console.log(indexes, timestamps);
+    }
     iSet.rangeByIndex('ticks_'+symbol.toLowerCase(), 'bids', indexes[0], indexes[indexes.length-1], function(prices){
+      //console.log(prices.length);
       db.doCalculation(indexes, symbol, liveTimestamp, range, timestamps, prices, liveIndex);
     });
   });
 }
 
 db.doCalculation = function(indexes, symbol, liveTimestamp, range, timestamps, prices, liveIndex){
+  console.log(liveIndex);
   var total = 0;
   for(var i=0;i<timestamps.length;i++){
     if(i==0){ // the first element of prices is not a part of the prices being averaged but instead the one that came before.
@@ -36,10 +41,19 @@ db.doCalculation = function(indexes, symbol, liveTimestamp, range, timestamps, p
       total += (timestamps[i]-timestamps[i-1])*prices[i+1];
     }
     if(i+1==timestamps.length){
-      iSet.add('sma_'+symbol, 'data'+'_'+range, liveIndex, total/range, function(){
-        client.publish('tick_mas', JSON.stringify({type:'sma',data:{symbol:symbol, timestamp:liveTimestamp, period:range, value:(total/range)}}));
-      });
+      /*if(!symbol || !liveTimestamp || !range || !timestamps || !liveIndex || !total){
+        console.log(symbol, liveTimestamp, range, timestamps.length, liveIndex, total);
+      }*/
+      if(total && range){
+        iSet.add('sma_'+symbol, 'data'+'_'+range, liveIndex, total/range, function(){
+          client.publish('tick_mas', JSON.stringify({type:'sma',data:{symbol:symbol, timestamp:liveTimestamp, period:range, value:(total/range)}}));
+        });
+      }else{
+        //console.log("nulled " + liveIndex);
+        iSet.add('sma_'+symbol, 'data'+'_'+range, liveIndex, "null", function(){
+          client.publish('tick_mas', JSON.stringify({type:'sma',data:{symbol:symbol, timestamp:liveTimestamp, period:range, value:"null"}}));
+        });
+      }
     }
   }
 }
-
